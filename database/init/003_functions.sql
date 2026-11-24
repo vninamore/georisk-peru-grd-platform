@@ -1,16 +1,16 @@
 SET search_path TO georisk, public;
 
 CREATE OR REPLACE FUNCTION classify_risk(score numeric)
-RETURNS risk_level
+RETURNS georisk.risk_level
 LANGUAGE sql
 IMMUTABLE
 STRICT
 AS $$
     SELECT CASE
-        WHEN score <= 0.15 THEN 'low'::risk_level
-        WHEN score <= 0.30 THEN 'medium'::risk_level
-        WHEN score <= 0.50 THEN 'high'::risk_level
-        ELSE 'very_high'::risk_level
+        WHEN score <= 0.15 THEN 'low'::georisk.risk_level
+        WHEN score <= 0.30 THEN 'medium'::georisk.risk_level
+        WHEN score <= 0.50 THEN 'high'::georisk.risk_level
+        ELSE 'very_high'::georisk.risk_level
     END;
 $$;
 
