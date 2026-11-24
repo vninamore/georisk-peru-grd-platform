@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   Map as MapLibreMap,
   NavigationControl,
@@ -16,17 +16,30 @@ interface RiskMapProps {
 export function RiskMap({ data }: RiskMapProps) {
   const container = useRef<HTMLDivElement>(null)
   const mapRef = useRef<MapLibreMap | null>(null)
+  const [mapUnavailable, setMapUnavailable] = useState(false)
 
   useEffect(() => {
     if (!container.current || mapRef.current) return
 
-    const map = new MapLibreMap({
-      container: container.current,
-      style: 'https://demotiles.maplibre.org/style.json',
-      center: [-77.01, -12.07],
-      zoom: 9.6,
-      attributionControl: { compact: true },
-    })
+    const webGl2 = document.createElement('canvas').getContext('webgl2')
+    if (!webGl2) {
+      setMapUnavailable(true)
+      return
+    }
+
+    let map: MapLibreMap
+    try {
+      map = new MapLibreMap({
+        container: container.current,
+        style: 'https://demotiles.maplibre.org/style.json',
+        center: [-77.01, -12.07],
+        zoom: 9.6,
+        attributionControl: { compact: true },
+      })
+    } catch {
+      setMapUnavailable(true)
+      return
+    }
     map.addControl(new NavigationControl(), 'top-right')
     map.addControl(new ScaleControl({ unit: 'metric' }))
 
@@ -60,17 +73,26 @@ export function RiskMap({ data }: RiskMapProps) {
         const feature = event.features?.[0]
         if (!feature?.properties) return
         const p = feature.properties
-        new Popup({ offset: 14 })
-          .setLngLat(event.lngLat)
-          .setHTML(`
-            <div class="map-popup">
-              <b>${String(p.name)}</b>
-              <span>${String(p.district)} · ${String(p.institution)}</span>
-              <dl><dt>Categoría</dt><dd>${String(p.category)}</dd>
-              <dt>Condición</dt><dd>${String(p.status)}</dd>
-              <dt>Fuente</dt><dd>${String(p.source)}</dd></dl>
-            </div>`)
-          .addTo(map)
+        const popup = document.createElement('div')
+        popup.className = 'map-popup'
+        const title = document.createElement('b')
+        title.textContent = String(p.name)
+        const subtitle = document.createElement('span')
+        subtitle.textContent = `${String(p.district)} · ${String(p.institution)}`
+        const details = document.createElement('dl')
+        ;[
+          ['Categoría', p.category],
+          ['Condición', p.status],
+          ['Fuente', p.source],
+        ].forEach(([label, value]) => {
+          const term = document.createElement('dt')
+          term.textContent = String(label)
+          const description = document.createElement('dd')
+          description.textContent = String(value)
+          details.append(term, description)
+        })
+        popup.append(title, subtitle, details)
+        new Popup({ offset: 14 }).setLngLat(event.lngLat).setDOMContent(popup).addTo(map)
       })
       map.on('mouseenter', 'facility-points', () => { map.getCanvas().style.cursor = 'pointer' })
       map.on('mouseleave', 'facility-points', () => { map.getCanvas().style.cursor = '' })
@@ -82,6 +104,27 @@ export function RiskMap({ data }: RiskMapProps) {
       mapRef.current = null
     }
   }, [data])
+
+  if (mapUnavailable) {
+    return (
+      <div className="map-fallback" role="status">
+        <div className="map-fallback-head">
+          <span>VISTA COMPATIBLE</span>
+          <strong>{data.features.length} establecimientos georreferenciados</strong>
+          <p>El navegador no habilitó WebGL2. Los datos y filtros continúan disponibles.</p>
+        </div>
+        <div className="map-fallback-list">
+          {data.features.slice(0, 8).map((feature) => (
+            <div key={feature.id}>
+              <i className={feature.properties.kind} />
+              <span>{feature.properties.name}<small>{feature.properties.district} · {feature.properties.category}</small></span>
+              <b>{feature.properties.status}</b>
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
 
   return <div ref={container} className="risk-map" aria-label="Mapa de establecimientos de salud registrados en SIGRID" />
 }
