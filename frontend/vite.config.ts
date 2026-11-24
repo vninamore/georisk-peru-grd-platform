@@ -7,12 +7,12 @@ export default defineConfig(({ mode }) => ({
   server: { port: 5173 },
   preview: { port: 4173 },
   build: {
-    // MapLibre is intentionally isolated; its worker and rendering engine are sizeable.
+    // Keep GIS and charting dependencies cacheable across dashboard releases.
     chunkSizeWarningLimit: 1200,
     rollupOptions: {
       output: {
         manualChunks: {
-          'map-vendor': ['maplibre-gl'],
+          'map-vendor': ['leaflet'],
           'charts-vendor': ['recharts'],
         },
       },

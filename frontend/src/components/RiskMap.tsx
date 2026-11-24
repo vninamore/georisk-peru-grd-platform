@@ -1,130 +1,109 @@
-import { useEffect, useRef, useState } from 'react'
-import {
-  Map as MapLibreMap,
-  NavigationControl,
-  Popup,
-  ScaleControl,
-  type MapGeoJSONFeature,
-  type MapMouseEvent,
-} from 'maplibre-gl'
-import type { FacilityFeatureCollection } from '../types'
+import { useEffect, useRef } from 'react'
+import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
+import type { FacilityFeature, FacilityFeatureCollection, FacilityKind } from '../types'
 
 interface RiskMapProps {
   data: FacilityFeatureCollection
 }
 
+const COLORS: Record<FacilityKind, string> = {
+  inpatient: '#ff4d5e',
+  outpatient: '#42d7dc',
+  support: '#f5c451',
+  other: '#8da4ad',
+}
+
+function validCoordinates(feature: FacilityFeature): boolean {
+  const [longitude, latitude] = feature.geometry.coordinates
+  return Number.isFinite(longitude) && Number.isFinite(latitude)
+    && longitude >= -180 && longitude <= 180
+    && latitude >= -90 && latitude <= 90
+}
+
+function popupContent(feature: FacilityFeature): HTMLElement {
+  const popup = document.createElement('div')
+  popup.className = 'map-popup'
+
+  const title = document.createElement('b')
+  title.textContent = feature.properties.name
+  const subtitle = document.createElement('span')
+  subtitle.textContent = `${feature.properties.district} · ${feature.properties.institution}`
+  const details = document.createElement('dl')
+
+  ;[
+    ['Categoría', feature.properties.category],
+    ['Condición', feature.properties.status],
+    ['Fuente', feature.properties.source],
+  ].forEach(([label, value]) => {
+    const term = document.createElement('dt')
+    term.textContent = label
+    const description = document.createElement('dd')
+    description.textContent = value
+    details.append(term, description)
+  })
+
+  popup.append(title, subtitle, details)
+  return popup
+}
+
 export function RiskMap({ data }: RiskMapProps) {
   const container = useRef<HTMLDivElement>(null)
-  const mapRef = useRef<MapLibreMap | null>(null)
-  const [mapUnavailable, setMapUnavailable] = useState(false)
 
   useEffect(() => {
-    if (!container.current || mapRef.current) return
+    if (!container.current) return
 
-    const webGl2 = document.createElement('canvas').getContext('webgl2')
-    if (!webGl2) {
-      setMapUnavailable(true)
-      return
-    }
-
-    let map: MapLibreMap
-    try {
-      map = new MapLibreMap({
-        container: container.current,
-        style: 'https://demotiles.maplibre.org/style.json',
-        center: [-77.01, -12.07],
-        zoom: 9.6,
-        attributionControl: { compact: true },
-      })
-    } catch {
-      setMapUnavailable(true)
-      return
-    }
-    map.addControl(new NavigationControl(), 'top-right')
-    map.addControl(new ScaleControl({ unit: 'metric' }))
-
-    map.on('load', () => {
-      map.addSource('facilities', { type: 'geojson', data })
-      map.addLayer({
-        id: 'facility-halo',
-        type: 'circle',
-        source: 'facilities',
-        paint: {
-          'circle-radius': 12,
-          'circle-color': ['match', ['get', 'kind'], 'inpatient', '#ff4d5e', 'outpatient', '#42d7dc', 'support', '#f5c451', '#8da4ad'],
-          'circle-opacity': 0.18,
-          'circle-blur': 0.2,
-        },
-      })
-      map.addLayer({
-        id: 'facility-points',
-        type: 'circle',
-        source: 'facilities',
-        paint: {
-          'circle-radius': ['match', ['get', 'kind'], 'inpatient', 7, 5],
-          'circle-color': ['match', ['get', 'kind'], 'inpatient', '#ff4d5e', 'outpatient', '#42d7dc', 'support', '#f5c451', '#8da4ad'],
-          'circle-stroke-color': '#f5fbff',
-          'circle-stroke-width': 1,
-          'circle-opacity': 0.9,
-        },
-      })
-
-      map.on('click', 'facility-points', (event: MapMouseEvent & { features?: MapGeoJSONFeature[] }) => {
-        const feature = event.features?.[0]
-        if (!feature?.properties) return
-        const p = feature.properties
-        const popup = document.createElement('div')
-        popup.className = 'map-popup'
-        const title = document.createElement('b')
-        title.textContent = String(p.name)
-        const subtitle = document.createElement('span')
-        subtitle.textContent = `${String(p.district)} · ${String(p.institution)}`
-        const details = document.createElement('dl')
-        ;[
-          ['Categoría', p.category],
-          ['Condición', p.status],
-          ['Fuente', p.source],
-        ].forEach(([label, value]) => {
-          const term = document.createElement('dt')
-          term.textContent = String(label)
-          const description = document.createElement('dd')
-          description.textContent = String(value)
-          details.append(term, description)
-        })
-        popup.append(title, subtitle, details)
-        new Popup({ offset: 14 }).setLngLat(event.lngLat).setDOMContent(popup).addTo(map)
-      })
-      map.on('mouseenter', 'facility-points', () => { map.getCanvas().style.cursor = 'pointer' })
-      map.on('mouseleave', 'facility-points', () => { map.getCanvas().style.cursor = '' })
+    const map = L.map(container.current, {
+      center: [-12.07, -77.01],
+      zoom: 10,
+      minZoom: 5,
+      maxZoom: 18,
+      zoomControl: true,
+      preferCanvas: true,
     })
 
-    mapRef.current = map
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors',
+      maxZoom: 19,
+      crossOrigin: true,
+    }).addTo(map)
+
+    const points = L.layerGroup().addTo(map)
+    const bounds = L.latLngBounds([])
+
+    data.features.filter(validCoordinates).forEach((feature) => {
+      const [longitude, latitude] = feature.geometry.coordinates
+      const color = COLORS[feature.properties.kind]
+      const radius = feature.properties.kind === 'inpatient' ? 7 : 5
+
+      L.circleMarker([latitude, longitude], {
+        radius,
+        color: '#f5fbff',
+        weight: 1,
+        fillColor: color,
+        fillOpacity: 0.9,
+      }).bindPopup(popupContent(feature), { maxWidth: 290 }).addTo(points)
+      bounds.extend([latitude, longitude])
+    })
+
+    if (bounds.isValid()) {
+      map.fitBounds(bounds, {
+        padding: window.innerWidth <= 720 ? [18, 18] : [36, 36],
+        maxZoom: 12,
+      })
+    }
+
+    const resize = () => map.invalidateSize({ pan: false })
+    const frame = window.requestAnimationFrame(resize)
+    const observer = new ResizeObserver(resize)
+    observer.observe(container.current)
+
     return () => {
+      window.cancelAnimationFrame(frame)
+      observer.disconnect()
       map.remove()
-      mapRef.current = null
     }
   }, [data])
-
-  if (mapUnavailable) {
-    return (
-      <div className="map-fallback" role="status">
-        <div className="map-fallback-head">
-          <span>VISTA COMPATIBLE</span>
-          <strong>{data.features.length} establecimientos georreferenciados</strong>
-          <p>El navegador no habilitó WebGL2. Los datos y filtros continúan disponibles.</p>
-        </div>
-        <div className="map-fallback-list">
-          {data.features.slice(0, 8).map((feature) => (
-            <div key={feature.id}>
-              <i className={feature.properties.kind} />
-              <span>{feature.properties.name}<small>{feature.properties.district} · {feature.properties.category}</small></span>
-              <b>{feature.properties.status}</b>
-            </div>
-          ))}
-        </div>
-      </div>
-    )
-  }
 
   return <div ref={container} className="risk-map" aria-label="Mapa de establecimientos de salud registrados en SIGRID" />
 }
