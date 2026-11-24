@@ -1,0 +1,15 @@
+version: 1.0.0
+datasets:
+  - id: synthetic-risk-points
+    title: Escenarios sintéticos multiamenaza
+    path: sample/risk_scenarios.geojson
+    format: GeoJSON
+    crs: EPSG:4326
+    license: CC0-1.0
+    spatial_scope: Lima demonstration extent
+    disclaimer: Not official data; for software demonstration only.
+  - id: vulnerability-indicators
+    title: Indicadores sintéticos de vulnerabilidad
+    path: sample/vulnerability_indicators.csv
+    format: CSV
+    license: CC0-1.0

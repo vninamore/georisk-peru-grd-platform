@@ -1,0 +1,14 @@
+name: Reporte de error
+description: Reportar un defecto reproducible
+title: "bug: "
+labels: [bug]
+body:
+  - type: textarea
+    attributes: { label: Descripción, description: Indique resultado esperado y observado }
+    validations: { required: true }
+  - type: textarea
+    attributes: { label: Reproducción, description: Pasos y datos sintéticos mínimos }
+    validations: { required: true }
+  - type: input
+    attributes: { label: Versión }
+    validations: { required: true }

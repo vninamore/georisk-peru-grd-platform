@@ -1,0 +1,121 @@
+{
+  "type": "FeatureCollection",
+  "name": "synthetic_multihazard_inputs",
+  "metadata": {
+    "crs": "EPSG:4326",
+    "license": "CC0-1.0",
+    "disclaimer": "Synthetic demonstration data; not official."
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "id": "LIM-DEMO-001",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -76.945,
+          -12.025
+        ]
+      },
+      "properties": {
+        "unit_id": "LIM-DEMO-001",
+        "name": "Sector Ribereño Norte",
+        "hazard_type": "flood",
+        "hazard": 0.88,
+        "exposure": 0.84,
+        "physical": 0.82,
+        "social": 0.7,
+        "economic": 0.62,
+        "environmental": 0.55
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "LIM-DEMO-002",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -76.905,
+          -12.075
+        ]
+      },
+      "properties": {
+        "unit_id": "LIM-DEMO-002",
+        "name": "Ladera Este",
+        "hazard_type": "landslide",
+        "hazard": 0.78,
+        "exposure": 0.65,
+        "physical": 0.76,
+        "social": 0.66,
+        "economic": 0.58,
+        "environmental": 0.71
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "LIM-DEMO-003",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -77.035,
+          -12.055
+        ]
+      },
+      "properties": {
+        "unit_id": "LIM-DEMO-003",
+        "name": "Centro Urbano",
+        "hazard_type": "earthquake",
+        "hazard": 0.67,
+        "exposure": 0.92,
+        "physical": 0.6,
+        "social": 0.48,
+        "economic": 0.45,
+        "environmental": 0.3
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "LIM-DEMO-004",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -76.87,
+          -12.11
+        ]
+      },
+      "properties": {
+        "unit_id": "LIM-DEMO-004",
+        "name": "Interfaz Urbano-Forestal",
+        "hazard_type": "wildfire",
+        "hazard": 0.51,
+        "exposure": 0.38,
+        "physical": 0.48,
+        "social": 0.4,
+        "economic": 0.32,
+        "environmental": 0.74
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "LIM-DEMO-005",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          -77.105,
+          -12.095
+        ]
+      },
+      "properties": {
+        "unit_id": "LIM-DEMO-005",
+        "name": "Zona Consolidada Oeste",
+        "hazard_type": "earthquake",
+        "hazard": 0.45,
+        "exposure": 0.52,
+        "physical": 0.34,
+        "social": 0.29,
+        "economic": 0.25,
+        "environmental": 0.18
+      }
+    }
+  ]
+}

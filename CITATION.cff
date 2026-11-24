@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+message: "Si utiliza este proyecto, cite el repositorio."
+title: "GeoRisk Peru: Plataforma GeoDataScience para GRD"
+type: software
+authors:
+  - family-names: "Nina More"
+    given-names: "Vanessa Jazmín"
+repository-code: "https://github.com/vninamore/georisk-peru-grd-platform"
+license: MIT
+version: 1.0.0
+date-released: 2026-11-24
