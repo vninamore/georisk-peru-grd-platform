@@ -80,5 +80,6 @@ AS $$
         ST_SetSRID(ST_MakePoint(longitude, latitude), 4326)::geography,
         distance_meters
     )
-    ORDER BY distance_m ASC;
+    -- Positional ordering avoids ambiguity with the RETURNS TABLE output name.
+    ORDER BY 4 ASC;
 $$;
