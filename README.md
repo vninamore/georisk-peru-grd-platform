@@ -9,6 +9,12 @@
 
 Plataforma de referencia para **Gestión del Riesgo de Desastres (GRD)** que integra ingeniería geoespacial, ciencia de datos y desarrollo GIS full-stack. Permite modelar escenarios multiamenaza, calcular peligro, exposición, vulnerabilidad y riesgo, servir resultados mediante una API geoespacial y explorarlos en un visor web.
 
+## Plataforma en línea
+
+**[Abrir GeoRisk Peru](https://vninamore.github.io/georisk-peru-grd-platform/)**
+
+La versión pública consulta la capa oficial de **Establecimientos de Salud** del servicio ArcGIS REST de SIGRID/CENEPRED y dispone de una muestra oficial de respaldo para mantener el dashboard navegable cuando el servicio externo no está disponible. El repositorio conserva además el backend FastAPI y la base PostGIS para un despliegue institucional completo.
+
 > **Portafolio técnico:** proyecto desarrollado por **Vanessa Jazmín Nina More**, bachiller en Ingeniería Geográfica, como demostración de arquitectura GIS senior y GeoDataScience aplicada a GRD.
 
 ## Problema que resuelve
@@ -31,6 +37,7 @@ Las evaluaciones de riesgo suelen estar repartidas entre archivos, hojas de cál
 - Operaciones PostGIS: intersección, proximidad, agregación y clasificación.
 - API documentada automáticamente con OpenAPI.
 - Visor web con MapLibre, filtros, indicadores y detalle territorial.
+- Integración interoperable con SIGRID/CENEPRED para elementos expuestos.
 - Datos sintéticos reproducibles; ninguna salida representa información oficial.
 - Pruebas unitarias, linting, análisis de seguridad y CI.
 - Entorno Docker Compose para desarrollo y demostración.

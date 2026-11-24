@@ -1,30 +1,56 @@
-export type RiskLevel = 'low' | 'medium' | 'high' | 'very_high'
-export type HazardType = 'flood' | 'landslide' | 'earthquake' | 'wildfire'
+export type FacilityKind = 'inpatient' | 'outpatient' | 'support' | 'other'
 
-export interface RiskProperties {
-  unit_id: string
+export interface FacilityProperties {
+  facility_id: number
   name: string
-  hazard_type: HazardType
-  hazard_index: number
-  exposure_index: number
-  vulnerability_index: number
-  risk_score: number
-  adjusted_risk_score: number
-  risk_level: RiskLevel
-  confidence: number
-  method_version: string
+  department: string
+  province: string
+  district: string
+  institution: string
+  category: string
+  status: string
+  source: string
+  kind: FacilityKind
 }
 
-export interface RiskFeature {
+export interface FacilityFeature {
   type: 'Feature'
   id: string
   geometry: { type: 'Point'; coordinates: [number, number] }
-  properties: RiskProperties
+  properties: FacilityProperties
 }
 
-export interface RiskFeatureCollection {
+export interface FacilityFeatureCollection {
   type: 'FeatureCollection'
   name: string
-  metadata: { crs: string; disclaimer: string }
-  features: RiskFeature[]
+  metadata: {
+    crs: string
+    source: string
+    source_url: string
+    disclaimer: string
+    live: boolean
+  }
+  features: FacilityFeature[]
+}
+
+export interface SigridFacilityProperties {
+  objectid: number
+  nombre_del: string
+  departamen: string
+  provincia: string
+  distrito: string
+  institucion: string
+  categoria_des: string
+  estabcondicion: string
+  fuente_des: string
+}
+
+export interface SigridFeatureCollection {
+  type: 'FeatureCollection'
+  features: Array<{
+    type: 'Feature'
+    id: number
+    geometry: { type: 'Point'; coordinates: [number, number] }
+    properties: SigridFacilityProperties
+  }>
 }

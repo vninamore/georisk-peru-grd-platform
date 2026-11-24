@@ -7,10 +7,10 @@ import {
   type MapGeoJSONFeature,
   type MapMouseEvent,
 } from 'maplibre-gl'
-import type { RiskFeatureCollection } from '../types'
+import type { FacilityFeatureCollection } from '../types'
 
 interface RiskMapProps {
-  data: RiskFeatureCollection
+  data: FacilityFeatureCollection
 }
 
 export function RiskMap({ data }: RiskMapProps) {
@@ -24,44 +24,39 @@ export function RiskMap({ data }: RiskMapProps) {
       container: container.current,
       style: 'https://demotiles.maplibre.org/style.json',
       center: [-77.01, -12.07],
-      zoom: 9.8,
+      zoom: 9.6,
       attributionControl: { compact: true },
     })
     map.addControl(new NavigationControl(), 'top-right')
     map.addControl(new ScaleControl({ unit: 'metric' }))
 
     map.on('load', () => {
-      map.addSource('risks', { type: 'geojson', data })
+      map.addSource('facilities', { type: 'geojson', data })
       map.addLayer({
-        id: 'risk-halo',
+        id: 'facility-halo',
         type: 'circle',
-        source: 'risks',
+        source: 'facilities',
         paint: {
-          'circle-radius': ['interpolate', ['linear'], ['get', 'risk_score'], 0, 12, 0.6, 34],
-          'circle-color': [
-            'match', ['get', 'risk_level'],
-            'low', '#39d98a', 'medium', '#f5c451', 'high', '#ff8a4c', '#ff4d5e',
-          ],
-          'circle-opacity': 0.23,
-          'circle-blur': 0.25,
+          'circle-radius': 12,
+          'circle-color': ['match', ['get', 'kind'], 'inpatient', '#ff4d5e', 'outpatient', '#42d7dc', 'support', '#f5c451', '#8da4ad'],
+          'circle-opacity': 0.18,
+          'circle-blur': 0.2,
         },
       })
       map.addLayer({
-        id: 'risk-points',
+        id: 'facility-points',
         type: 'circle',
-        source: 'risks',
+        source: 'facilities',
         paint: {
-          'circle-radius': ['interpolate', ['linear'], ['get', 'risk_score'], 0, 6, 0.6, 15],
-          'circle-color': [
-            'match', ['get', 'risk_level'],
-            'low', '#39d98a', 'medium', '#f5c451', 'high', '#ff8a4c', '#ff4d5e',
-          ],
+          'circle-radius': ['match', ['get', 'kind'], 'inpatient', 7, 5],
+          'circle-color': ['match', ['get', 'kind'], 'inpatient', '#ff4d5e', 'outpatient', '#42d7dc', 'support', '#f5c451', '#8da4ad'],
           'circle-stroke-color': '#f5fbff',
-          'circle-stroke-width': 1.5,
+          'circle-stroke-width': 1,
+          'circle-opacity': 0.9,
         },
       })
 
-      map.on('click', 'risk-points', (event: MapMouseEvent & { features?: MapGeoJSONFeature[] }) => {
+      map.on('click', 'facility-points', (event: MapMouseEvent & { features?: MapGeoJSONFeature[] }) => {
         const feature = event.features?.[0]
         if (!feature?.properties) return
         const p = feature.properties
@@ -69,15 +64,16 @@ export function RiskMap({ data }: RiskMapProps) {
           .setLngLat(event.lngLat)
           .setHTML(`
             <div class="map-popup">
-              <b>${p.name}</b>
-              <span>${String(p.hazard_type).toUpperCase()}</span>
-              <dl><dt>Riesgo</dt><dd>${Number(p.risk_score).toFixed(3)}</dd>
-              <dt>Nivel</dt><dd>${String(p.risk_level).replace('_', ' ')}</dd></dl>
+              <b>${String(p.name)}</b>
+              <span>${String(p.district)} · ${String(p.institution)}</span>
+              <dl><dt>Categoría</dt><dd>${String(p.category)}</dd>
+              <dt>Condición</dt><dd>${String(p.status)}</dd>
+              <dt>Fuente</dt><dd>${String(p.source)}</dd></dl>
             </div>`)
           .addTo(map)
       })
-      map.on('mouseenter', 'risk-points', () => { map.getCanvas().style.cursor = 'pointer' })
-      map.on('mouseleave', 'risk-points', () => { map.getCanvas().style.cursor = '' })
+      map.on('mouseenter', 'facility-points', () => { map.getCanvas().style.cursor = 'pointer' })
+      map.on('mouseleave', 'facility-points', () => { map.getCanvas().style.cursor = '' })
     })
 
     mapRef.current = map
@@ -87,5 +83,5 @@ export function RiskMap({ data }: RiskMapProps) {
     }
   }, [data])
 
-  return <div ref={container} className="risk-map" aria-label="Mapa de escenarios de riesgo" />
+  return <div ref={container} className="risk-map" aria-label="Mapa de establecimientos de salud registrados en SIGRID" />
 }
